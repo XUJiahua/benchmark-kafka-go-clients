@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	kafkago_batch "github.com/gguridi/benchmark-kafka-go-clients/kafkago-batch"
 	sarama_sync "github.com/gguridi/benchmark-kafka-go-clients/sarama-sync"
 
 	"github.com/gguridi/benchmark-kafka-go-clients/confluent"
@@ -61,6 +62,16 @@ var _ = Describe("Benchmarks", func() {
 		case "kafkago":
 			writer := kafkago.NewProducer(viper.GetString("kafka.brokers"))
 			process := kafkago.Prepare(writer, GenMessage(), NumMessages)
+			b.Time(name, func() {
+				process()
+			})
+			if err := writer.Close(); err != nil {
+				log.WithError(err).Panic("Unable to close the producer")
+			}
+			break
+		case "kafkago-batch":
+			writer := kafkago_batch.NewProducer(viper.GetString("kafka.brokers"))
+			process := kafkago_batch.Prepare(writer, GenMessage(), NumMessages)
 			b.Time(name, func() {
 				process()
 			})
